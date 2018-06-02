@@ -97,65 +97,93 @@
 \section{Introduction}
 
 
-La notion de réseaux de neurones artificiels a été évoquée depuis plus de cinquante ans. Cela a permis l’évolution concrète de l’intelligence artificielle au plus grand bonheur des informaticiens et étudiants. Le projet que nous allons exposer traite de la capacité d’un algorithme d’apprentissage supervisé suivant le modèle du perceptron. \newline  \newline
-Nous disposons pour cela d’une base de données créée par Yann \textsc{LECUN} nommée « \textit {Mnist handwritten database} » composée de plusieurs milliers d’exemples d’images de 28*28 pixels chacune représentant un chiffre manuscrit. \newline
-Notre objectif est de récupérer parmi cette base de données un fichier input contenant 60 000 exemples sur lesquels notre algorithme va « apprendre » et ainsi pouvoir prédire les chiffres contenus sur chacun des 10 000 exemples donnés pour le test.\newline 
-
+La notion d'apprentissage supervisé a été évoquée depuis plus de cinquante ans. Cela a permis l’évolution concrète de l’intelligence artificielle au plus grand bonheur des informaticiens et étudiants. Le projet que nous allons exposer traite de la capacité de plusieurs algorithmes d’apprentissage supervisé à apprendre, puis à prédire. \newline  \newline
+Nous disposons pour cela d’une base de données fournie par \textsc{litislab} dans le contexte d'une compétition nommée « \textit {My Tailor is rich!} » composée de plusieurs milliers de textes en Anglais, chacun possédant des variables numériques prédictives, et la variable à prédire (i.e le niveau). \newline \newline
+Notre objectif est d'établir un (voir plusieurs) classifieurs à partir de cette base de données. Nous allons répartir les données en deux ensembles, un sur lequel notre (nos) classifieur va \textit {« apprendre »} et un autre ensemble sur lequel il va pouvoir \textit {« prédire» } le niveaux d'Anglais.\newline 
 
 
 \section{Outils de développement}
 
-Dans le cadre de ce projet, nous avons utilisé GitHub pour une meilleure collaboration, eclipse sous la JDK 1.8, Doxygène nous a permis de générer une documentation visible depuis le fichier index.html. \newline Pour finir ce rapport a été rédigé en utilisant LateX.
+Dans le cadre de ce projet, nous avons utilisé GitHub pour une meilleure collaboration, Jupyter Notebook avec les librairies Keras et Scikit-Learn \newline Pour finir ce rapport a été rédigé en utilisant LateX.
+
+\section{Première approche}
+
+\subsection{Prétraitement}
+
+Une première approche a consisté a utiliser un réseaux de neuronnes artificiels et multiclasse pour procéder à l'apprentissage puis à la prédiction, mais avant cela un prétraitement  (dite de preprocessing) des données était un passage obligatoire, en effet, les données ont plusieurs valeurs manquantes, tels que les NaN (Not a Number). \newline
+Après avoir remplacé ces dernières par des 0, il a fallu centrer-réduire les données c'est là que StandardScaler() nous a été utile.  \newline
+Enfin, puisque les variables à prédire sont nominales (Niveaux allant de A1 à C2) il a fallu les encoder via L'Encodage one-hot, puis les transformer en valeurs numériques.\\
+Il est à noter, que cette première approche ne tient pas compte du texte, mais uniquement des variables numériques.
+
+\subsection{Construction du modèle}
+
+Une fois le prétraitement terminé, on découpe notre modèle en deux sous ensembles X\_train et X\_test avec une répartition de 60\%, 40\% . \newline
+
+Après plusieurs recherches et tests, nous avons opté pour le modèle \textit{Sequential} de Keras, celui ci permet de paramétrer le réseau couche par couche sans trop de difficulté. \newline \newline
+Comme citée lors du dernier cours, la fonction d'activation \textit{Relu} a donné de bien meilleurs résultats comparé à la fonction \textit{Sigmoid}.\\ Nous avons donc opté pour un réseau à 3 couches et c'est donc dans les deux premières couches (input et hidden) que notre choix s'est porté sur \textit{Relu}. \newline \newline
+En revanche, pour la dernière couche (output), d'après nos recherches puis, nos tests; il s'avère que la fonction d'activation\textit{Softmax} ainsi que la fonction de perte \textit{Categorical\_crossentropy} étaient plus adaptés pour des classes multiples. \newline
 
 
+\subsection{Résultats des tests}
 
-\section{Résultats des tests}
 
-Avec un SingleLayer, l'exécution pour 28*28 neurones d'entrées ainsi que 10 neurones de sorties dure 5 minutes, cette dernière corrige lentement le taux d'erreurs et avoisine les 8\%
- à la fin de l'exécution. \newline
-
-Un HiddenLayer, cette fois-ci, avec 10 neurones cachés donne à priori les mêmes résultats pour le même temps d'exécutions, en revanche, en passant à 20 neurones cachés, les courbes se croisent, celle du réseau caché passe en dessous comme visible à la figure 2, augmenter le nombre des neurones cachés améliore l'apprentissage, mais ralentit fortement l'exécution.\newline
+Après plusieurs paramétrages, on constate qu'avec 100 itération, on arrive à des résultats très satisfaisants. Notre taux d'erreurs se situe entre 3\% et 5\% \newline \newline
 
 \begin{figure}[!htb]
   \centering
-    \caption{Résultat d'entrainement d'un SingleLayer}
-    \includegraphics[width=\textwidth]{single.png}
-	\textit {The training of your single layer lasted for 310.314633146 seconds}
+    \caption{Evaluation du modèle}
+    \includegraphics[width=\textwidth]{loss.png}
+    \end{figure}
+    
+
+
+
+\begin{figure}[!htb]
+Les prédictions sur X\_test comparé aux valeurs réelles Y\_test sont exposées sur les 2 figures suivantes : \\
+  \centering
+    \caption{Prédictions sur X\_test}
+    \includegraphics[width=\textwidth]{predictions.png}
+	\textit {Effectifs prédits par classe}
 \newline \newline
 
   \centering
-    \caption{Résultat d'entrainement d'un HiddenLayer}
-    \includegraphics[width=\textwidth]{hidden.png}
-	\textit {The training of your hidden layer lasted for 662.522861786 seconds}
+    \caption{Les valeurs réelles}
+    \includegraphics[width=\textwidth]{relles.png}
+	\textit {Effectifs réels par classe}
 
 \end{figure}
 
 
 
-
-\section{Conclusion sur les résultats}
-
-Comme nous aurions pu le prédire, les résultats de HiddenLayer nous fournissent beaucoup moins d’erreurs que SingleLayer. Nous pouvions en effet conjecturer que, puisque HiddenLayer pouvait avoir beaucoup plus de neurones que SingleLayer, il aurait plus de \textit{synapses}; si l’on veut faire l’analogie avec le cerveau humain; et donc plus de variables à modifier, donc un apprentissage plus efficace. \newline
-Néanmoins, il est important de souligner que le SingeLayer lors de ses débuts, apprend bien mieux que le HiddenLayer, sur la durée, HiddenLayer le rattrape et le dépasse . \newline
-Ici, une seule couche cachée permet déjà d’atteindre un degré d’erreur assez faible. On suppose, naturellement, que de meilleurs résultats peuvent être atteints avec plusieurs couches cachées. 
-
-D'autre part, augmenter le nombre d'itérations à 20, ne permet pas d'avoir une amélioration significative, en effet au bout de la 15eme itération, notre algorithme n'apprend plus, et reste à un nombre d'erreurs quasi constant. En revanche, augmenter le nombre de neurones cachés à 80, améliore significativement les résultats et aboutit à 5\% d'erreurs au détriment d'un temps d'exécution très lent.
+\section{Seconde approche}
 
 
+\section{Autres Classifieurs}
+
+Cette fois-ci, en utilisant la librairie Scikit-Learn, on a pu tester et comparer divers classifieurs entre eux. \newline
+Les classifieurs testés sont : Régression Logisitque, Arbre de décision, KNN, LDA, Random Forest et d'autres encore. \newline  \newline
+Sans surprise, comme notre enseignant Mr Chevalyere nous l'avait recommandé, Le Random Forest est bien plus performant que les autres. \newline   \newline
+KNN aussi se démarque bien, mais comme il ne construit pas de modèle et est obligé de chargé tout en mémoire à chaque lancement, ce dernier est bien plus lent que les autres. \newline\newline
+Tout les résultats détaillés sont consultables sur le fichier \textit{ManyClassifiers.ipynb}
 
 
+\section{KMeans}
 
-\section{Ressenti de l'implémentation}
+Bien que le Clustering, et plus particulièrement KMeans ne soit pas une méthode d'apprentissage supervisée, mais plutot non supervisée, nous avons voulu tester et voir les résultats par nous meme, et ce en faisant abstraction de la variable à prédire (le niveau). \newline \newline
+Nous nous basons sur k=6, (6 clusters, car 6 niveaux différents),  les résultats obtenus sont présentés dans les figures suivantes : \newline
 
-Il est important de souligner que mis à part le cours, avant de travailler sur ce projet nous n’avions pas d’expérience avec les réseaux de neurones artificiels. \newline
-En outre, la première difficulté a été de comprendre le code déjà existant, les différentes classes et le lien entre ces dernières, comme les méthodes s'appellent et sont liées entre elles, trouver la source de nos erreurs n'a pas toujours été une tâche aisée.  \newline 
-Une des principales difficultés relevées a été l’implémentation de la méthode train pour la classe SingleLayer, qui affichait une courbe constante avant correction de notre part. Le passage de SingleLayer à HiddenLayer a été plus fluide de sens et de logique. \newline
+\begin{figure}[!htb]
+  \centering
+    \caption{Nuage de points au début}
+    \includegraphics[width=\textwidth]{kmeansdeb.png}
 
-\section{Améliorations éventuelles / Hypothèses }
 
-Le programme étant assez lent à tourner, une des premières idées que nous avons eues, était d'accroitre sa vitesse, en passant par des Threads, solution qui n'a pas été implémentée par manque de temps. \newline 
-D'autres points, sur le côté théorique cette fois-ci, l'utilisation de biais n'a pas été mentionnée de façon explicite dans ce cours.  \newline
-Par ailleurs, l'algorithme d'apprentissage \textit {Widrow-Hoff} a été préféré à \textit {l'algorithme de gradient}, étant à la fois plus efficace, et plus simple à implémenter. 
+  \centering
+    \caption{Nuage de points après 50 étapes}
+    \includegraphics[width=\textwidth]{kmeansfin.png}
+
+
+\end{figure}
 
 \clearpage
 
@@ -171,10 +199,5 @@ Par ailleurs, l'algorithme d'apprentissage \textit {Widrow-Hoff} a été préfé
 \item \url{ http://www.turingfinance.com/misconceptions-about-neural-networks/} \newline
 \item \url{https://youtu.be/L7WNYvbvGBc} \newline
 \end{itemize}
-
-\section{Annexes } 
- \begin{center}
-    \includegraphics[width=\textwidth]{annexes.png}
-\end{center}
 
 \end{document}

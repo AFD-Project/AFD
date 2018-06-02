@@ -1,0 +1,4 @@
+Pour aller plus loin : 
+
+Remplacer les valeurs NaN par la moyenne au lieu de le faire par des zéro.
+
