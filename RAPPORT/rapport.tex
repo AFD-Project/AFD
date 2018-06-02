@@ -10,8 +10,17 @@
 \usepackage{mathpazo} 
 \usepackage{indentfirst}
 \usepackage[section]{placeins}
-\usepackage{url}
+\usepackage[hyphens]{url}
 \usepackage{hyperref}
+\usepackage{xcolor}
+\hypersetup{
+    colorlinks,
+    linkcolor={red!50!black},
+    citecolor={blue!50!black},
+    urlcolor={blue!80!black}
+}
+\PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}[hidelinks]
+
 
 \begin{document}
 
@@ -121,7 +130,7 @@ Une fois le prétraitement terminé, on découpe notre modèle en deux sous ense
 
 Après plusieurs recherches et tests, nous avons opté pour le modèle \textit{Sequential} de Keras, celui ci permet de paramétrer le réseau couche par couche sans trop de difficulté. \newline \newline
 Comme citée lors du dernier cours, la fonction d'activation \textit{Relu} a donné de bien meilleurs résultats comparé à la fonction \textit{Sigmoid}.\\ Nous avons donc opté pour un réseau à 3 couches et c'est donc dans les deux premières couches (input et hidden) que notre choix s'est porté sur \textit{Relu}. \newline \newline
-En revanche, pour la dernière couche (output), d'après nos recherches puis, nos tests; il s'avère que la fonction d'activation\textit{Softmax} ainsi que la fonction de perte \textit{Categorical\_crossentropy} étaient plus adaptés pour des classes multiples. \newline
+En revanche, pour la dernière couche (output), d'après nos recherches puis, nos tests; il s'avère que la fonction d'activation \textit{Softmax} ainsi que la fonction de perte \textit{Categorical\_crossentropy} étaient plus adaptés pour des classes multiples. \newline
 
 
 \subsection{Résultats des tests}
@@ -153,18 +162,26 @@ Les prédictions sur X\_test comparé aux valeurs réelles Y\_test sont exposée
 
 \end{figure}
 
-
-
-\section{Seconde approche}
-
-
 \section{Autres Classifieurs}
 
 Cette fois-ci, en utilisant la librairie Scikit-Learn, on a pu tester et comparer divers classifieurs entre eux. \newline
 Les classifieurs testés sont : Régression Logisitque, Arbre de décision, KNN, LDA, Random Forest et d'autres encore. \newline  \newline
 Sans surprise, comme notre enseignant Mr Chevalyere nous l'avait recommandé, Le Random Forest est bien plus performant que les autres. \newline   \newline
-KNN aussi se démarque bien, mais comme il ne construit pas de modèle et est obligé de chargé tout en mémoire à chaque lancement, ce dernier est bien plus lent que les autres. \newline\newline
-Tout les résultats détaillés sont consultables sur le fichier \textit{ManyClassifiers.ipynb}
+KNN aussi se démarque bien, mais comme il ne construit pas de modèle et est obligé de charger tout en mémoire à chaque lancement, ce dernier est bien plus lent que les autres. \newline\newline
+Tous les résultats détaillés sont consultables sur le fichier \textit{ManyClassifiers.ipynb}
+
+
+\begin{table}[h!]
+  \begin{center}
+    \caption{Précision par classifieur}
+    \label{tab:table}
+    \begin{tabular}{c c c c c c} % <-- Alignments: 1st column left, 2nd middle and 3rd right, with vertical lines in between
+      \textbf{Regression Logistique} & \textbf{Arbre de décision} & \textbf{KNN}   & \textbf{LDA}  & \textbf{Bayes Naif}  & \textbf{Random Forest}\\
+      \hline
+       0.72\% & 0.72\%  & 0.77\% & 0.73\% &  0.66\% & 0.78\% \\ 
+    \end{tabular}
+  \end{center}
+\end{table}
 
 
 \section{KMeans}
@@ -185,19 +202,61 @@ Nous nous basons sur k=6, (6 clusters, car 6 niveaux différents),  les résulta
 
 \end{figure}
 
+
+\section{Seconde approche}
+
+\subsection {Introduction}
+
+Dans cette partie nous allons analyser uniquement la partie texte, soit la colonne « fulltext » ainsi que la classification qui leurs sont associées.
+La classification de texte est utilisée dans différent domaine, que cela soit pour définir les sentiments émis par un texte, filtrer les « spams » etc…
+Notre but ici est donc d’assigner un texte à un des 6 classifications, nous ferons ici l’hypothèse que chaque texte sera associé à une et une seule catégorie. 
+
+\subsection {Prétraitement}
+
+Dans notre cas, nous aurons en entré les textes en anglais \textit{« fulltext »} et en sortie le niveau correspondant \textit{« level1 »}. \newline
+Nous avons aussi créé une colonne nommée \textit{« category\_id\_df »} codant les niveaux d’anglais par un entier (de type Integer) car les variables sont souvent mieux représentées par des entiers que par des chaines de caractère.\newline \newline
+
+\begin{figure}[!htb]
+  \centering
+    \caption{Tableau représentant les textes selon leurs niveaux et catégories}
+    \includegraphics[width=\textwidth]{textmining.png}
+\end{figure}
+
+Il faut savoir que les classifieurs ainsi que les algorithmes d’apprentissage n’arrivent pas à traiter directement du texte brut, ils s’attendent à recevoir des vecteurs de caractéristiques numériques, on convertit donc durant cette phase les textes en entiers.\newline \newline
+Une approche simple pour essayer d’extraire les caractéristiques d’un texte est tout simplement d’utiliser ce qu’on appelle communément \textit{« a bag of words model »}, soit un modèle pour chaque texte où la fréquence d’apparition des mots est prise en compte et l’ordre des mots n’importe peu et donc nous obtenons pour chacun des 27 310 textes un total de 12 633 caractéristiques représentant le score pour différent unigram  et bigram.\newline
+En utilisant la bibliothéque \textit{« Sklearn »}  cela nous donne accès à des fonctions pouvant faire un lien entre des termes et des niveaux d’anglais, ici nous avons choisi d’afficher deux unigrams et deux bigrams qui sont le plus corrélés à chaque niveau, nous obtenons : 
+
+\begin{figure}[!htb]
+  \centering
+    \caption{Tableau représentant des unigrams et des bigrams selon le niveau}
+    \includegraphics[width=\textwidth]{texttab.png}
+\end{figure}
+
+\subsection {Construction du modèle}
+
+Après quelques recherches, nous nous sommes penchés sur le modèle \textit{« LinearSVC »} donnant des résultats extrêmement satisfaisant, même meilleur que l’algorithme de \textit{« RandomForest »}, beaucoup de données sont affichés dans le programme \textit{Etude-de-Texte.ipynb }, notamment la matrice de confusion ainsi que des tableaux montrant des erreurs de prédictions soit comment certains textes sont catégorisés dans un niveau qui n’est pas le leur. \newline
+\begin{figure}[!htb]
+  \centering
+    \caption{Nous obtenons donc comme résultat }
+	\includegraphics[width=0.9\columnwidth]{textresults.png}
+\end{figure}
+
 \clearpage
 
 \section{Webographie} 
 \begin{itemize}
-\item \url{https://fr.wikipedia.org/wiki/Perceptron} \newline
-\item \url{https://fr.wikipedia.org/wiki/Perceptron_multicouche} \newline
-\item \url{alp.developpez.com/tutoriels/intelligence-artificielle/reseaux-de-neurones/} \newline
+\item \url{https://medium.com/@pushkarmandot/build-your-first-deep-learning-neural-network-model-using-keras-in-python-a90b5864116d} \newline
+\item \url{https://machinelearningmastery.com/tutorial-first-neural-network-python-keras/} \newline
+\item \url{https://towardsdatascience.com/deep-learning-gender-from-name-lstm-recurrent-neural-networks-448d64553044} \newline
 \item \url{https://towardsdatascience.com/multi-layer-neural-networks-with-sigmoid-function-deep-learning-for-rookies-2-bf464f09eb7f} \newline
-\item \url{https://www.cs.cmu.edu/afs/cs/academic/class/15883-f15/slides/backprop.pdf} \newline
-\item \url{http://www.dgp.toronto.edu/people/RMB/papers_old/p6.pdf} \newline
-\item \url{https://www.labri.fr/perso/nrougier/downloads/Perceptron.pdf} \newline
-\item \url{ http://www.turingfinance.com/misconceptions-about-neural-networks/} \newline
-\item \url{https://youtu.be/L7WNYvbvGBc} \newline
+\item \url{https://machinelearningmastery.com/multi-class-classification-tutorial-keras-deep-learning-library/} \newline
+\item \url{https://towardsdatascience.com/solving-a-simple-classification-problem-with-python-fruits-lovers-edition-d20ab6b071d2} \newline
+\item \url{https://www.kaggle.com/mjamilmoughal/k-nearest-neighbor-classifier-to-predict-fruits} \newline
+\item \url{https://towardsdatascience.com/multi-class-text-classification-with-scikit-learn-12f1e60e0a9f} \newline
+\item \url{http://blog.aylien.com/first-text-mining-project-python-3-steps/} \newline
+\item \url{https://www.digitalvidya.com/blog/an-introduction-to-text-analysis-in-python/} \newline
+\item \url{https://fr.wikipedia.org/wiki/Encodage_one-hot/} \newline
+
 \end{itemize}
 
 \end{document}
